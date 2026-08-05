@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import ReportItem from './pages/ReportItem';
 import BrowseItems from './pages/BrowseItems';
 import ItemDetails from './pages/ItemDetails';
+import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -24,6 +25,11 @@ function App() {
             <Route path="report/:type" element={<ReportItem />} />
             <Route path="browse" element={<BrowseItems />} />
             <Route path="item/:id" element={<ItemDetails />} />
+          </Route>
+
+          {/* Admin Routes */}
+          <Route element={<ProtectedRoute requireAdmin={true} />}>
+            <Route path="admin" element={<AdminDashboard />} />
           </Route>
         </Route>
       </Routes>

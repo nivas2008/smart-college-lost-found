@@ -40,6 +40,11 @@ const Navbar = () => {
                 <Link to="/dashboard" className="text-gray-700 dark:text-gray-300 hover:text-primary font-medium transition-colors">
                   Dashboard
                 </Link>
+                {user.role === 'admin' && (
+                  <Link to="/admin" className="text-gray-700 dark:text-gray-300 hover:text-secondary font-medium transition-colors">
+                    Admin Panel
+                  </Link>
+                )}
                 <button 
                   onClick={handleLogout}
                   className="flex items-center text-red-500 hover:text-red-700 font-medium transition-colors"
