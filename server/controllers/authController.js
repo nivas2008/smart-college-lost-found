@@ -1,22 +1,90 @@
 const User = require('../models/User');
+const Otp = require('../models/Otp');
+const sendEmail = require('../utils/sendEmail');
 const jwt = require('jsonwebtoken');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
+// @desc    Generate a math captcha
+// @route   GET /api/auth/captcha
+// @access  Public
+const generateCaptcha = (req, res) => {
+  const num1 = Math.floor(Math.random() * 10) + 1;
+  const num2 = Math.floor(Math.random() * 10) + 1;
+  const operator = Math.random() > 0.5 ? '+' : '*';
+  
+  const question = `What is ${num1} ${operator} ${num2}?`;
+  const answer = operator === '+' ? num1 + num2 : num1 * num2;
+  
+  const hash = jwt.sign({ answer }, process.env.JWT_SECRET, { expiresIn: '5m' });
+  
+  res.json({ question, hash });
+};
+
+// @desc    Send OTP to email
+// @route   POST /api/auth/send-otp
+// @access  Public
+const sendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) return res.status(400).json({ message: 'Email is required' });
+
+    const userExists = await User.findOne({ email });
+    if (userExists) return res.status(400).json({ message: 'Email is already registered' });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits
+
+    await Otp.create({ email, otp });
+
+    await sendEmail({
+      email,
+      subject: 'Smart College Lost & Found - Verification OTP',
+      message: `Your verification code is: ${otp}. It will expire in 10 minutes.`
+    });
+
+    res.json({ message: 'OTP sent successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = async (req, res) => {
-  console.log("Registration request received with body:", req.body);
+  console.log("Registration request received with body:", { ...req.body, password: '[HIDDEN]' });
   try {
-    const { name, email, password, department, collegeId, mobile } = req.body;
+    const { name, email, password, department, collegeId, mobile, otp, captchaAnswer, captchaHash } = req.body;
 
     const userExists = await User.findOne({ email });
 
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
+    }
+
+    // 1. CAPTCHA VERIFICATION
+    if (!captchaAnswer || !captchaHash) {
+      return res.status(400).json({ message: 'Captcha is required' });
+    }
+    try {
+      const decoded = jwt.verify(captchaHash, process.env.JWT_SECRET);
+      if (decoded.answer.toString() !== captchaAnswer.toString()) {
+        return res.status(400).json({ message: 'Incorrect Captcha answer' });
+      }
+    } catch (err) {
+      return res.status(400).json({ message: 'Invalid or expired Captcha' });
+    }
+
+    // 2. OTP VERIFICATION
+    if (!otp) {
+      return res.status(400).json({ message: 'OTP is required' });
+    }
+    const storedOtp = await Otp.findOne({ email }).sort({ createdAt: -1 });
+    if (!storedOtp || storedOtp.otp !== otp) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
 
     const user = await User.create({
@@ -28,6 +96,9 @@ const registerUser = async (req, res) => {
       mobile,
       role: 'student'
     });
+
+    // Delete used OTPs for this email
+    await Otp.deleteMany({ email });
 
     if (user) {
       res.status(201).json({
@@ -170,5 +241,7 @@ module.exports = {
   registerUser,
   loginUser,
   getUserProfile,
-  updateUserProfile
+  updateUserProfile,
+  sendOtp,
+  generateCaptcha
 };
