@@ -45,6 +45,9 @@ const Navbar = () => {
                     Admin Panel
                   </Link>
                 )}
+                <Link to="/profile" className="flex items-center text-gray-700 dark:text-gray-300 hover:text-primary font-medium transition-colors">
+                  <User size={18} className="mr-1" /> Profile
+                </Link>
                 <button 
                   onClick={handleLogout}
                   className="flex items-center text-red-500 hover:text-red-700 font-medium transition-colors"

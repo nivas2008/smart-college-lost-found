@@ -40,8 +40,14 @@ export const AuthProvider = ({ children }) => {
     delete axios.defaults.headers.common['Authorization'];
   };
 
+  const updateSession = (data) => {
+    setUser(data);
+    localStorage.setItem('userInfo', JSON.stringify(data));
+    axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateSession, loading }}>
       {children}
     </AuthContext.Provider>
   );

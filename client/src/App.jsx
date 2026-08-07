@@ -9,6 +9,7 @@ import ReportItem from './pages/ReportItem';
 import BrowseItems from './pages/BrowseItems';
 import ItemDetails from './pages/ItemDetails';
 import AdminDashboard from './pages/AdminDashboard';
+import ProfilePage from './pages/ProfilePage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
             <Route path="report/:type" element={<ReportItem />} />
             <Route path="browse" element={<BrowseItems />} />
             <Route path="item/:id" element={<ItemDetails />} />
+            <Route path="profile" element={<ProfilePage />} />
           </Route>
 
           {/* Admin Routes */}

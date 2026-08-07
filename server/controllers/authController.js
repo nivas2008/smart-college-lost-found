@@ -54,9 +54,22 @@ const loginUser = async (req, res) => {
 
     const user = await User.findOne({ email });
 
+    // Check if account is locked
+    if (user && user.lockUntil && user.lockUntil > Date.now()) {
+      const minutesRemaining = Math.ceil((user.lockUntil - Date.now()) / 60000);
+      return res.status(401).json({ message: `Account locked due to multiple failed attempts. Try again in ${minutesRemaining} minutes.` });
+    }
+
     if (user && (await user.matchPassword(password))) {
       if (user.status !== 'active') {
         return res.status(401).json({ message: 'Account is not active. Please contact admin.' });
+      }
+
+      // Reset login attempts on successful login
+      if (user.loginAttempts > 0 || user.lockUntil) {
+        user.loginAttempts = 0;
+        user.lockUntil = undefined;
+        await user.save();
       }
 
       res.json({
@@ -67,6 +80,13 @@ const loginUser = async (req, res) => {
         token: generateToken(user._id),
       });
     } else {
+      if (user) {
+        user.loginAttempts = (user.loginAttempts || 0) + 1;
+        if (user.loginAttempts >= 3) {
+          user.lockUntil = Date.now() + 10 * 60 * 1000; // 10 minutes from now
+        }
+        await user.save();
+      }
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error) {
@@ -99,8 +119,44 @@ const getUserProfile = async (req, res) => {
   }
 };
 
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+      user.name = req.body.name || user.name;
+      user.department = req.body.department || user.department;
+      user.mobile = req.body.mobile || user.mobile;
+      
+      if (req.body.password) {
+        user.password = req.body.password;
+      }
+
+      const updatedUser = await user.save();
+
+      res.json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        department: updatedUser.department,
+        mobile: updatedUser.mobile,
+        role: updatedUser.role,
+        token: generateToken(updatedUser._id),
+      });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
-  getUserProfile
+  getUserProfile,
+  updateUserProfile
 };

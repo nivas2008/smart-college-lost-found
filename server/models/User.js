@@ -17,6 +17,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['active', 'inactive', 'suspended'],
     default: 'active'
+  },
+  loginAttempts: { 
+    type: Number, 
+    required: true, 
+    default: 0 
+  },
+  lockUntil: { 
+    type: Number 
   }
 }, { timestamps: true });
 
