@@ -29,6 +29,7 @@ const LoginPage = () => {
       setCaptchaData(res.data);
     } catch (error) {
       console.error("Failed to load captcha", error);
+      toast.error("Failed to load security check. Our servers might be updating. Please refresh the page in a moment.");
     }
   };
 
