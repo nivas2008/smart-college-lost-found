@@ -84,6 +84,8 @@ const loginUser = async (req, res) => {
         user.loginAttempts = (user.loginAttempts || 0) + 1;
         if (user.loginAttempts >= 3) {
           user.lockUntil = Date.now() + 10 * 60 * 1000; // 10 minutes from now
+          await user.save();
+          return res.status(401).json({ message: 'Account locked due to multiple failed attempts. Try again in 10 minutes.' });
         }
         await user.save();
       }
