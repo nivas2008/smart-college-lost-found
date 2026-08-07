@@ -18,9 +18,12 @@ const sendEmail = async (options) => {
     return;
   }
 
-  // Create a transporter using Gmail
+  // Create a transporter using Gmail on port 587 (STARTTLS)
+  // Port 465 is often blocked by cloud provider firewalls (like Render)
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // true for 465, false for other ports
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
