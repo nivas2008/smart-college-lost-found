@@ -1,13 +1,16 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { LogIn } from 'lucide-react';
+import axios from 'axios';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [captchaData, setCaptchaData] = useState(null);
+  const [captchaAnswer, setCaptchaAnswer] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
   const { login } = useContext(AuthContext);
@@ -16,15 +19,34 @@ const LoginPage = () => {
   
   const from = location.state?.from?.pathname || "/dashboard";
 
+  useEffect(() => {
+    fetchCaptcha();
+  }, []);
+
+  const fetchCaptcha = async () => {
+    try {
+      const res = await axios.get('/api/auth/captcha');
+      setCaptchaData(res.data);
+    } catch (error) {
+      console.error("Failed to load captcha", error);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!captchaAnswer) {
+      return toast.error("Please solve the Captcha");
+    }
+
     setIsLoading(true);
     try {
-      await login(email, password);
+      await login({ email, password, captchaAnswer, captchaHash: captchaData?.hash });
       toast.success('Login successful!');
       navigate(from, { replace: true });
     } catch (error) {
       toast.error(error.response?.data?.message || 'Login failed');
+      fetchCaptcha(); // Refresh captcha on failure
+      setCaptchaAnswer('');
     } finally {
       setIsLoading(false);
     }
@@ -90,6 +112,22 @@ const LoginPage = () => {
                 />
               </div>
             </div>
+
+            {captchaData && (
+              <div className="pt-2 border-t border-gray-200 dark:border-gray-700 mt-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Security Check: {captchaData.question}
+                </label>
+                <input 
+                  type="number" 
+                  required 
+                  value={captchaAnswer}
+                  onChange={(e) => setCaptchaAnswer(e.target.value)}
+                  placeholder="Enter answer" 
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-dark text-gray-900 dark:text-white focus:ring-primary focus:border-primary sm:text-sm transition-colors" 
+                />
+              </div>
+            )}
 
             <div className="flex items-center justify-between">
               <div className="text-sm">

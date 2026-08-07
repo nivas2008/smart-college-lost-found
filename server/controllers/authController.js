@@ -121,7 +121,20 @@ const registerUser = async (req, res) => {
 // @access  Public
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, captchaAnswer, captchaHash } = req.body;
+
+    // 1. CAPTCHA VERIFICATION
+    if (!captchaAnswer || !captchaHash) {
+      return res.status(400).json({ message: 'Captcha is required' });
+    }
+    try {
+      const decoded = jwt.verify(captchaHash, process.env.JWT_SECRET);
+      if (decoded.answer.toString() !== captchaAnswer.toString()) {
+        return res.status(400).json({ message: 'Incorrect Captcha answer' });
+      }
+    } catch (err) {
+      return res.status(400).json({ message: 'Invalid or expired Captcha' });
+    }
 
     const user = await User.findOne({ email });
 
