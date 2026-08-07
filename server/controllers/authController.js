@@ -4,7 +4,8 @@ const sendEmail = require('../utils/sendEmail');
 const jwt = require('jsonwebtoken');
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+  const secret = process.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod';
+  return jwt.sign({ id }, secret, { expiresIn: '30d' });
 };
 
 // @desc    Generate a math captcha
@@ -18,7 +19,8 @@ const generateCaptcha = (req, res) => {
   const question = `What is ${num1} ${operator} ${num2}?`;
   const answer = operator === '+' ? num1 + num2 : num1 * num2;
   
-  const hash = jwt.sign({ answer }, process.env.JWT_SECRET, { expiresIn: '5m' });
+  const secret = process.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod';
+  const hash = jwt.sign({ answer }, secret, { expiresIn: '5m' });
   
   res.json({ question, hash });
 };
@@ -70,7 +72,8 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Captcha is required' });
     }
     try {
-      const decoded = jwt.verify(captchaHash, process.env.JWT_SECRET);
+      const secret = process.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod';
+      const decoded = jwt.verify(captchaHash, secret);
       if (decoded.answer.toString() !== captchaAnswer.toString()) {
         return res.status(400).json({ message: 'Incorrect Captcha answer' });
       }
@@ -128,7 +131,8 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: 'Captcha is required' });
     }
     try {
-      const decoded = jwt.verify(captchaHash, process.env.JWT_SECRET);
+      const secret = process.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod';
+      const decoded = jwt.verify(captchaHash, secret);
       if (decoded.answer.toString() !== captchaAnswer.toString()) {
         return res.status(400).json({ message: 'Incorrect Captcha answer' });
       }
