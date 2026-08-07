@@ -26,7 +26,7 @@ const RegisterPage = () => {
     try {
       // In a real app, you would configure the API base URL properly.
       // Since we proxy in Vite, this relative path works.
-      const res = await axios.get('/api/auth/captcha');
+      const res = await axios.get('/api/auth/security-check');
       setCaptchaData(res.data);
     } catch (error) {
       console.error("Failed to load captcha", error);

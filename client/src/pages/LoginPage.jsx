@@ -25,7 +25,7 @@ const LoginPage = () => {
 
   const fetchCaptcha = async () => {
     try {
-      const res = await axios.get('/api/auth/captcha');
+      const res = await axios.get('/api/auth/security-check');
       setCaptchaData(res.data);
     } catch (error) {
       console.error("Failed to load captcha", error);

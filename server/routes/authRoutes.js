@@ -6,7 +6,7 @@ const { protect } = require('../middleware/auth');
 router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.post('/send-otp', sendOtp);
-router.get('/captcha', generateCaptcha);
+router.get('/security-check', generateCaptcha);
 router.get('/profile', protect, getUserProfile);
 router.put('/profile', protect, updateUserProfile);
 
