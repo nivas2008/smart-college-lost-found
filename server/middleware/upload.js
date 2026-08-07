@@ -2,7 +2,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinaryStorage = require('multer-storage-cloudinary');
 
 let storage;
 
@@ -14,12 +14,10 @@ if (process.env.CLOUDINARY_CLOUD_NAME) {
     api_secret: process.env.CLOUDINARY_API_SECRET
   });
 
-  storage = new CloudinaryStorage({
+  storage = cloudinaryStorage({
     cloudinary: cloudinary,
-    params: {
-      folder: 'smart-college-lost-and-found',
-      allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    },
+    folder: 'smart-college-lost-and-found',
+    allowedFormats: ['jpg', 'jpeg', 'png', 'webp'],
   });
 } else {
   // Local storage fallback for development
