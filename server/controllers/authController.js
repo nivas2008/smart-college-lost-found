@@ -134,6 +134,16 @@ const updateUserProfile = async (req, res) => {
       user.mobile = req.body.mobile || user.mobile;
       
       if (req.body.password) {
+        if (!req.body.oldPassword) {
+          return res.status(400).json({ message: 'Please provide your current password to set a new one.' });
+        }
+        
+        // Verify old password
+        const isMatch = await user.matchPassword(req.body.oldPassword);
+        if (!isMatch) {
+          return res.status(401).json({ message: 'Incorrect current password.' });
+        }
+
         user.password = req.body.password;
       }
 

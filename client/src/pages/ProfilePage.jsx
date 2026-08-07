@@ -9,6 +9,7 @@ const ProfilePage = () => {
     name: '',
     department: '',
     mobile: '',
+    oldPassword: '',
     password: '',
     confirmPassword: ''
   });
@@ -33,6 +34,11 @@ const ProfilePage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (formData.password && !formData.oldPassword) {
+      return setError('Please provide your current password to set a new one');
+    }
+    
     if (formData.password && formData.password !== formData.confirmPassword) {
       return setError('Passwords do not match');
     }
@@ -46,12 +52,13 @@ const ProfilePage = () => {
         name: formData.name,
         department: formData.department,
         mobile: formData.mobile,
+        oldPassword: formData.oldPassword || undefined,
         password: formData.password || undefined
       });
       
       updateSession(data);
       setSuccess(true);
-      setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
+      setFormData(prev => ({ ...prev, oldPassword: '', password: '', confirmPassword: '' }));
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update profile');
     } finally {
@@ -160,6 +167,26 @@ const ProfilePage = () => {
 
             <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Change Password</h3>
+              
+              <div className="mb-6 sm:max-w-xs">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Current Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="password"
+                    name="oldPassword"
+                    value={formData.oldPassword}
+                    onChange={handleChange}
+                    placeholder="Required to set a new password"
+                    className="pl-10 w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-dark-lighter text-gray-900 dark:text-white shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all"
+                  />
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
