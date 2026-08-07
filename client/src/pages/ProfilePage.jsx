@@ -11,9 +11,12 @@ const ProfilePage = () => {
     mobile: '',
     oldPassword: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    otp: ''
   });
   const [loading, setLoading] = useState(false);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
@@ -32,6 +35,34 @@ const ProfilePage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleSendOtp = async () => {
+    if (!formData.password || !formData.oldPassword) {
+      return setError('Please provide current password and new password before requesting OTP.');
+    }
+    if (formData.password !== formData.confirmPassword) {
+      return setError('New passwords do not match.');
+    }
+    
+    setOtpSending(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+      await axios.post('/api/auth/profile/send-otp', {}, config);
+      setOtpSent(true);
+      setSuccess('OTP sent to your email successfully!');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to send OTP');
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -42,23 +73,34 @@ const ProfilePage = () => {
     if (formData.password && formData.password !== formData.confirmPassword) {
       return setError('Passwords do not match');
     }
+
+    if (formData.password && !formData.otp) {
+      return setError('OTP is required to change password');
+    }
     
     setLoading(true);
     setError(null);
     setSuccess(false);
 
     try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
       const { data } = await axios.put('/api/auth/profile', {
         name: formData.name,
         department: formData.department,
         mobile: formData.mobile,
         oldPassword: formData.oldPassword || undefined,
-        password: formData.password || undefined
-      });
+        password: formData.password || undefined,
+        otp: formData.otp || undefined
+      }, config);
       
       updateSession(data);
-      setSuccess(true);
-      setFormData(prev => ({ ...prev, oldPassword: '', password: '', confirmPassword: '' }));
+      setSuccess('Profile updated successfully!');
+      setOtpSent(false);
+      setFormData(prev => ({ ...prev, oldPassword: '', password: '', confirmPassword: '', otp: '' }));
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update profile');
     } finally {
@@ -86,7 +128,7 @@ const ProfilePage = () => {
           
           {success && (
             <div className="bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 p-4 rounded-lg mb-6 border border-green-100 dark:border-green-800">
-              Profile updated successfully!
+              {success}
             </div>
           )}
 
@@ -225,6 +267,35 @@ const ProfilePage = () => {
                   </div>
                 </div>
               </div>
+
+              {formData.password && (
+                <div className="mt-6 mb-6">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Verification OTP
+                  </label>
+                  <div className="flex rounded-md shadow-sm">
+                    <input
+                      type="text"
+                      name="otp"
+                      value={formData.otp}
+                      onChange={handleChange}
+                      placeholder="Enter 6-digit code"
+                      className="flex-1 rounded-none rounded-l-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-dark-lighter text-gray-900 dark:text-white focus:border-primary focus:ring focus:ring-primary/20 transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSendOtp}
+                      disabled={otpSending || otpSent}
+                      className="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 dark:border-gray-600 rounded-r-lg bg-gray-50 dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors"
+                    >
+                      {otpSending ? 'Sending...' : otpSent ? 'Sent' : 'Send OTP'}
+                    </button>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Required to confirm your new password.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="pt-4 flex justify-end">

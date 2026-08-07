@@ -209,6 +209,39 @@ const getUserProfile = async (req, res) => {
   }
 };
 
+// @desc    Send OTP to logged-in user for profile update
+// @route   POST /api/auth/profile/send-otp
+// @access  Private
+const sendProfileOtp = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const email = user.email;
+
+    // Generate 6-digit OTP
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Delete existing OTP for this email if any
+    await Otp.deleteMany({ email });
+
+    // Save new OTP to database
+    await Otp.create({ email, otp: otpCode });
+
+    // Send email
+    const subject = 'Smart College Lost & Found - Profile Update OTP';
+    const message = `Your verification code to update your profile is: ${otpCode}. It will expire in 10 minutes.`;
+    
+    await sendEmail({ email, subject, message });
+
+    res.json({ message: 'OTP sent successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Update user profile
 // @route   PUT /api/auth/profile
 // @access  Private
@@ -226,13 +259,26 @@ const updateUserProfile = async (req, res) => {
           return res.status(400).json({ message: 'Please provide your current password to set a new one.' });
         }
         
+        if (!req.body.otp) {
+          return res.status(400).json({ message: 'OTP is required to change password.' });
+        }
+        
         // Verify old password
         const isMatch = await user.matchPassword(req.body.oldPassword);
         if (!isMatch) {
           return res.status(401).json({ message: 'Incorrect current password.' });
         }
+        
+        // Verify OTP
+        const otpRecord = await Otp.findOne({ email: user.email, otp: req.body.otp });
+        if (!otpRecord) {
+          return res.status(400).json({ message: 'Invalid or expired OTP.' });
+        }
 
         user.password = req.body.password;
+        
+        // Delete OTP after successful verification
+        await Otp.deleteOne({ _id: otpRecord._id });
       }
 
       const updatedUser = await user.save();
@@ -260,5 +306,6 @@ module.exports = {
   getUserProfile,
   updateUserProfile,
   sendOtp,
+  sendProfileOtp,
   generateCaptcha
 };
