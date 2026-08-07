@@ -1,4 +1,8 @@
 const nodemailer = require('nodemailer');
+const dns = require('dns');
+
+// Force IPv4 for DNS resolution to prevent ENETUNREACH errors on cloud providers that lack IPv6 routing
+dns.setDefaultResultOrder('ipv4first');
 
 const sendEmail = async (options) => {
   // If email credentials are not provided, fallback to simulation (useful for testing/dev without env vars)
