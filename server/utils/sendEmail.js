@@ -1,12 +1,6 @@
-const nodemailer = require('nodemailer');
-const dns = require('dns');
-
-// Force IPv4 for DNS resolution to prevent ENETUNREACH errors on cloud providers that lack IPv6 routing
-dns.setDefaultResultOrder('ipv4first');
-
 const sendEmail = async (options) => {
-  // If email credentials are not provided, fallback to simulation (useful for testing/dev without env vars)
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  // If API key is not provided, fallback to simulation (useful for testing/dev without env vars)
+  if (!process.env.EMAIL_API_KEY) {
     console.log('\n=======================================');
     console.log(`📧 NEW EMAIL INTERCEPTED (Simulation Mode)`);
     console.log(`=======================================`);
@@ -14,33 +8,38 @@ const sendEmail = async (options) => {
     console.log(`Subject: ${options.subject}`);
     console.log(`Message: ${options.message}`);
     console.log(`=======================================\n`);
-    console.log('⚠️ Note: To send real emails, set EMAIL_USER and EMAIL_PASS in your .env or Render environment.\n');
+    console.log('⚠️ Note: To send real emails, set EMAIL_API_KEY in Render and configure Netlify.\n');
     return;
   }
 
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // true for 465, false for other ports
-    requireTLS: true,
-    family: 4, // Force IPv4 to prevent ENETUNREACH errors on cloud providers that lack IPv6 routing
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-      rejectUnauthorized: false
+  try {
+    // Instead of using Nodemailer directly (which gets blocked by Render's firewall),
+    // we send a request to our Netlify Serverless Function which handles the SMTP delivery.
+    const frontendUrl = process.env.FRONTEND_URL || 'https://sgulostandfound.netlify.app';
+    const netlifyFunctionUrl = `${frontendUrl}/.netlify/functions/sendEmail`;
+
+    const response = await fetch(netlifyFunctionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.EMAIL_API_KEY
+      },
+      body: JSON.stringify({
+        to: options.email,
+        subject: options.subject,
+        message: options.message,
+      })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Netlify function returned ${response.status}: ${errText}`);
     }
-  });
 
-  const mailOptions = {
-    from: `"Smart College Lost & Found" <${process.env.EMAIL_USER}>`,
-    to: options.email,
-    subject: options.subject,
-    text: options.message,
-  };
-
-  await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error("Failed to trigger Netlify Email Function:", error.message);
+    throw new Error('Email sending failed due to delivery service error.');
+  }
 };
 
 module.exports = sendEmail;
