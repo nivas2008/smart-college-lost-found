@@ -11,7 +11,7 @@ const generateToken = (id) => {
 const registerUser = async (req, res) => {
   console.log("Registration request received with body:", req.body);
   try {
-    const { name, email, password, department, collegeId, mobile, role } = req.body;
+    const { name, email, password, department, collegeId, mobile } = req.body;
 
     const userExists = await User.findOne({ email });
 
@@ -26,7 +26,7 @@ const registerUser = async (req, res) => {
       department,
       collegeId,
       mobile,
-      role: role || 'student'
+      role: 'student'
     });
 
     if (user) {
