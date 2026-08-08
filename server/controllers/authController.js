@@ -300,6 +300,72 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
+// @desc    Initiate forgot password flow by sending OTP
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Generate 6-digit OTP
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Delete existing OTP for this email if any
+    await Otp.deleteMany({ email });
+
+    // Save new OTP to database
+    await Otp.create({ email, otp: otpCode });
+
+    // Send email
+    const subject = 'Smart College Lost & Found - Password Reset OTP';
+    const message = `Your password reset code is: ${otpCode}. It will expire in 10 minutes.`;
+    
+    await sendEmail({ email, subject, message });
+
+    res.json({ message: 'OTP sent successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Reset password using OTP
+// @route   POST /api/auth/reset-password
+// @access  Public
+const resetPassword = async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  try {
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ message: 'Email, OTP, and new password are required' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Verify OTP
+    const otpRecord = await Otp.findOne({ email, otp });
+    if (!otpRecord) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    // Delete OTP
+    await Otp.deleteOne({ _id: otpRecord._id });
+
+    res.json({ message: 'Password reset successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -307,5 +373,7 @@ module.exports = {
   updateUserProfile,
   sendOtp,
   sendProfileOtp,
+  forgotPassword,
+  resetPassword,
   generateCaptcha
 };
