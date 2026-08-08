@@ -1,14 +1,12 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { Upload, X, Loader2 } from 'lucide-react';
 
 const ReportItem = () => {
   const { type } = useParams(); // 'lost' or 'found'
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
 
   const [formData, setFormData] = useState({
     name: '',

@@ -68,7 +68,7 @@ const RegisterPage = () => {
     
     setIsLoading(true);
     try {
-      const { confirmPassword, ...data } = formData;
+      const { confirmPassword: _confirmPassword, ...data } = formData;
       await register({ ...data, captchaHash: captchaData?.hash });
       toast.success('Registration successful!');
       navigate('/dashboard');

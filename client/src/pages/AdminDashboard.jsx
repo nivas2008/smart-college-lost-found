@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { Users, Package, Trash2, Shield, UserX, UserCheck } from 'lucide-react';
+import { Users, Package, Trash2, Shield, UserX } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('users');
@@ -13,7 +13,7 @@ const AdminDashboard = () => {
     try {
       const { data } = await axios.get('/api/users');
       setUsers(data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to fetch users');
     }
   };
@@ -22,7 +22,7 @@ const AdminDashboard = () => {
     try {
       const { data } = await axios.get('/api/items');
       setItems(data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to fetch items');
     }
   };
@@ -46,7 +46,7 @@ const AdminDashboard = () => {
         await axios.delete(`/api/users/${id}`);
         setUsers(users.filter(u => u._id !== id));
         toast.success('User deleted successfully');
-      } catch (error) {
+      } catch {
         toast.error('Failed to delete user');
       }
     }
@@ -57,7 +57,7 @@ const AdminDashboard = () => {
       const { data } = await axios.put(`/api/users/${id}`, { role: newRole });
       setUsers(users.map(u => (u._id === id ? { ...u, role: data.role } : u)));
       toast.success('User role updated');
-    } catch (error) {
+    } catch {
       toast.error('Failed to update user role');
     }
   };
@@ -68,7 +68,7 @@ const AdminDashboard = () => {
         await axios.delete(`/api/items/${id}`);
         setItems(items.filter(i => i._id !== id));
         toast.success('Item deleted successfully');
-      } catch (error) {
+      } catch {
         toast.error('Failed to delete item');
       }
     }

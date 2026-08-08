@@ -24,7 +24,7 @@ const ItemDetails = () => {
       try {
         const { data } = await axios.get(`/api/items/${id}`);
         setItem(data);
-      } catch (error) {
+      } catch {
         toast.error("Failed to load item details");
         navigate('/browse');
       } finally {
@@ -60,7 +60,7 @@ const ItemDetails = () => {
         await axios.put(`/api/items/${item._id}`, { status: 'resolved' });
         toast.success("Item marked as resolved!");
         setItem({...item, status: 'resolved'});
-      } catch (error) {
+      } catch {
         toast.error("Failed to update status");
       }
     }

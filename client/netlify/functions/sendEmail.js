@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
-export const handler = async (event, context) => {
+export const handler = async (event) => {
   // Only allow POST
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };

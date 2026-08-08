@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, PlusCircle, ShieldCheck, Clock } from 'lucide-react';
+import { Search, PlusCircle } from 'lucide-react';
 
 const LandingPage = () => {
   return (
