@@ -20,6 +20,16 @@ app.use(express.urlencoded({ extended: true }));
 // Make uploads folder static
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Root health check endpoint
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    service: 'Smart College Lost & Found Backend API',
+    frontend: 'https://sgulostandfound.netlify.app',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
