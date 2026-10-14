@@ -1,14 +1,14 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const cloudinary = require('cloudinary').v2;
+const cloudinary = require('cloudinary');
 const cloudinaryStorage = require('multer-storage-cloudinary');
 
 let storage;
 
-if (process.env.CLOUDINARY_CLOUD_NAME) {
+if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
   // Configure Cloudinary
-  cloudinary.config({
+  cloudinary.v2.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
@@ -17,7 +17,7 @@ if (process.env.CLOUDINARY_CLOUD_NAME) {
   storage = cloudinaryStorage({
     cloudinary: cloudinary,
     folder: 'smart-college-lost-and-found',
-    allowedFormats: ['jpg', 'jpeg', 'png', 'webp'],
+    allowedFormats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
   });
 } else {
   // Local storage fallback for development
@@ -40,14 +40,14 @@ if (process.env.CLOUDINARY_CLOUD_NAME) {
 }
 
 const checkFileType = (file, cb) => {
-  const filetypes = /jpg|jpeg|png|webp/;
+  const filetypes = /jpg|jpeg|png|webp|gif|heic|avif/i;
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
+  const isImageMime = file.mimetype && file.mimetype.startsWith('image/');
 
-  if (extname && mimetype) {
+  if (isImageMime || extname) {
     return cb(null, true);
   } else {
-    cb(new Error('Images only! (JPG, JPEG, PNG, WEBP)'));
+    cb(new Error('Images only! (JPG, JPEG, PNG, WEBP, GIF)'));
   }
 };
 

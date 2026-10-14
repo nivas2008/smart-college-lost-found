@@ -13,10 +13,8 @@ const createItem = async (req, res) => {
     let images = [];
     if (req.files && req.files.length > 0) {
       images = req.files.map(file => {
-        // If Cloudinary is used, file.path contains the full secure URL.
-        // If local storage is used, we construct the local path.
-        return file.path && file.path.startsWith('http') ? file.path : `/uploads/${file.filename}`;
-      });
+        return file.secure_url || file.url || (file.path && file.path.startsWith('http') ? file.path : `/uploads/${file.filename}`);
+      }).filter(Boolean);
     }
 
     const item = new Item({
@@ -114,8 +112,8 @@ const updateItem = async (req, res) => {
       // Handle new images if uploaded
       if (req.files && req.files.length > 0) {
         const newImages = req.files.map(file => {
-          return file.path && file.path.startsWith('http') ? file.path : `/uploads/${file.filename}`;
-        });
+          return file.secure_url || file.url || (file.path && file.path.startsWith('http') ? file.path : `/uploads/${file.filename}`);
+        }).filter(Boolean);
         item.images = [...item.images, ...newImages];
       }
 

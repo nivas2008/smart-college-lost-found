@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { Upload, X, Loader2 } from 'lucide-react';
+import { AuthContext } from '../context/AuthContext';
 
 const ReportItem = () => {
   const { type } = useParams(); // 'lost' or 'found'
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -55,13 +57,20 @@ const ReportItem = () => {
     setIsSubmitting(true);
 
     try {
+      const token = user?.token || JSON.parse(localStorage.getItem('userInfo') || '{}')?.token;
+      if (!token) {
+        toast.error('Please log in to report an item');
+        navigate('/login');
+        return;
+      }
+
       // Create FormData object to handle file uploads
       const submitData = new FormData();
       
       // Append all text fields
       submitData.append('type', type);
       Object.keys(formData).forEach(key => {
-        if (formData[key]) {
+        if (formData[key] !== '' && formData[key] !== null && formData[key] !== undefined) {
           submitData.append(key, formData[key]);
         }
       });
@@ -71,10 +80,10 @@ const ReportItem = () => {
         submitData.append('images', image);
       });
 
-      // Send to API
+      // Send to API with Authorization token (do NOT manually set Content-Type so browser sets boundary automatically)
       const config = {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          Authorization: `Bearer ${token}`
         }
       };
 
@@ -83,7 +92,8 @@ const ReportItem = () => {
       toast.success(`${type === 'lost' ? 'Lost' : 'Found'} item reported successfully!`);
       navigate('/dashboard');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to report item');
+      console.error('Failed to report item:', error);
+      toast.error(error.response?.data?.message || error.message || 'Failed to report item');
     } finally {
       setIsSubmitting(false);
     }
