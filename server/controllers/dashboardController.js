@@ -11,7 +11,7 @@ const getAnalytics = async (req, res) => {
     const lostItems = await Item.countDocuments({ type: 'lost' });
     const foundItems = await Item.countDocuments({ type: 'found' });
     const activeClaims = await Claim.countDocuments({ status: 'pending' });
-    const successfulReturns = await Item.countDocuments({ status: 'returned' });
+    const successfulReturns = await Item.countDocuments({ status: { $in: ['returned', 'resolved'] } });
     
     // Monthly reports data for charts
     const monthlyData = await Item.aggregate([
@@ -40,4 +40,29 @@ const getAnalytics = async (req, res) => {
   }
 };
 
-module.exports = { getAnalytics };
+// @desc    Get public real-time stats for landing page
+// @route   GET /api/dashboard/public-stats
+// @access  Public
+const getPublicStats = async (req, res) => {
+  try {
+    const registeredStudents = await User.countDocuments();
+    const itemsReturned = await Item.countDocuments({ status: { $in: ['returned', 'resolved'] } });
+    const activeReports = await Item.countDocuments({ status: 'active' });
+    const totalItems = await Item.countDocuments();
+    
+    const successRate = totalItems > 0 
+      ? `${Math.round((itemsReturned / totalItems) * 100)}%` 
+      : '100%';
+
+    res.json({
+      itemsReturned,
+      activeReports,
+      registeredStudents,
+      successRate
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { getAnalytics, getPublicStats };

@@ -1,9 +1,37 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, PlusCircle } from 'lucide-react';
+import axios from 'axios';
 
 const LandingPage = () => {
+  const [stats, setStats] = useState({
+    itemsReturned: '0',
+    activeReports: '0',
+    registeredStudents: '0',
+    successRate: '100%'
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const { data } = await axios.get('/api/dashboard/public-stats');
+        setStats({
+          itemsReturned: data.itemsReturned !== undefined ? data.itemsReturned.toString() : '0',
+          activeReports: data.activeReports !== undefined ? data.activeReports.toString() : '0',
+          registeredStudents: data.registeredStudents !== undefined ? data.registeredStudents.toString() : '0',
+          successRate: data.successRate || '100%'
+        });
+      } catch (error) {
+        console.error('Failed to load real-time stats', error);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
   return (
     <div className="bg-gray-50 dark:bg-dark transition-colors duration-200 min-h-screen">
       {/* Hero Section */}
@@ -50,12 +78,18 @@ const LandingPage = () => {
       {/* Stats Section */}
       <section className="py-16 bg-white dark:bg-dark-lighter">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-sm">
+              <span className="w-2 h-2 mr-2 bg-emerald-500 rounded-full animate-ping"></span>
+              Live Campus Metrics
+            </span>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              { label: 'Items Returned', value: '1,200+' },
-              { label: 'Active Reports', value: '350' },
-              { label: 'Registered Students', value: '5,000+' },
-              { label: 'Success Rate', value: '85%' },
+              { label: 'Items Returned', value: stats.itemsReturned },
+              { label: 'Active Reports', value: stats.activeReports },
+              { label: 'Registered Students', value: stats.registeredStudents },
+              { label: 'Success Rate', value: stats.successRate },
             ].map((stat, idx) => (
               <motion.div 
                 key={idx}
@@ -63,9 +97,15 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: idx * 0.1 }}
-                className="p-6 rounded-2xl bg-gray-50 dark:bg-dark border border-gray-100 dark:border-gray-800"
+                className="p-6 rounded-2xl bg-gray-50 dark:bg-dark border border-gray-100 dark:border-gray-800 shadow-sm"
               >
-                <h3 className="text-3xl font-bold text-primary mb-2">{stat.value}</h3>
+                <h3 className="text-3xl font-bold text-primary mb-2">
+                  {loadingStats ? (
+                    <span className="inline-block w-12 h-8 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></span>
+                  ) : (
+                    stat.value
+                  )}
+                </h3>
                 <p className="text-gray-600 dark:text-gray-400 font-medium">{stat.label}</p>
               </motion.div>
             ))}
