@@ -13,12 +13,25 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
+        const token = user?.token || JSON.parse(localStorage.getItem('userInfo') || '{}')?.token;
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
         const [analyticsRes, itemsRes] = await Promise.all([
-          axios.get('/api/dashboard/analytics'),
-          axios.get(`/api/items?user=${user._id}`)
+          axios.get('/api/dashboard/analytics', config).catch(err => {
+            console.error('Analytics request error', err);
+            return { data: null };
+          }),
+          axios.get(`/api/items?user=${user?._id || ''}`, config).catch(err => {
+            console.error('My items request error', err);
+            return { data: [] };
+          })
         ]);
-        setAnalytics(analyticsRes.data);
-        setMyItems(itemsRes.data);
+        if (analyticsRes.data && typeof analyticsRes.data === 'object') {
+          setAnalytics(analyticsRes.data);
+        }
+        if (Array.isArray(itemsRes.data)) {
+          setMyItems(itemsRes.data);
+        }
       } catch (error) {
         console.error("Failed to fetch dashboard data", error);
       } finally {
@@ -28,6 +41,8 @@ const Dashboard = () => {
 
     if (user) {
       fetchDashboardData();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 

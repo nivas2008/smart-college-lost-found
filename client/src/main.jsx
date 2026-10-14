@@ -9,8 +9,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
 
 // Set global axios base URL for production
-if (import.meta.env.VITE_API_URL) {
-  axios.defaults.baseURL = import.meta.env.VITE_API_URL;
+const apiBaseUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://smart-college-lost-found.onrender.com' : '');
+if (apiBaseUrl) {
+  axios.defaults.baseURL = apiBaseUrl;
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

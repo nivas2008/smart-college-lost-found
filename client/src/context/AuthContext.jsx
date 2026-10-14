@@ -10,12 +10,26 @@ export const AuthProvider = ({ children }) => {
   // Base URL is handled by Vite proxy in development
 
   useEffect(() => {
-    const userInfo = localStorage.getItem('userInfo');
-    if (userInfo) {
-      setUser(JSON.parse(userInfo));
-      axios.defaults.headers.common['Authorization'] = `Bearer ${JSON.parse(userInfo).token}`;
+    try {
+      const userInfo = localStorage.getItem('userInfo');
+      if (userInfo && userInfo !== 'undefined' && userInfo !== 'null') {
+        const parsed = JSON.parse(userInfo);
+        if (parsed && typeof parsed === 'object') {
+          setUser(parsed);
+          if (parsed.token) {
+            axios.defaults.headers.common['Authorization'] = `Bearer ${parsed.token}`;
+          }
+        }
+      } else {
+        localStorage.removeItem('userInfo');
+      }
+    } catch (e) {
+      console.error('Failed to parse userInfo from localStorage', e);
+      localStorage.removeItem('userInfo');
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = async (loginData) => {
