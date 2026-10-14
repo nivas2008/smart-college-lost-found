@@ -59,44 +59,67 @@ const Dashboard = () => {
       </div>
       
       {/* Platform Analytics Cards */}
-      <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Platform Overview</h2>
+      {/* Platform Analytics Cards */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Platform Overview</h2>
+        <span className="text-xs text-gray-500 dark:text-gray-400">Click any card to view items</span>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        <div className="bg-white dark:bg-dark-lighter p-6 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-800 flex items-center">
-          <div className="p-3 rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 mr-4">
+        <Link 
+          to="/browse?type=lost"
+          className="bg-white dark:bg-dark-lighter p-6 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-800 flex items-center hover:scale-[1.02] hover:shadow-2xl transition-all cursor-pointer group"
+        >
+          <div className="p-3 rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 mr-4 group-hover:scale-110 transition-transform">
             <PackageSearch size={24} />
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Lost Items</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{analytics?.lostItems || 0}</p>
+            <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold mt-1 inline-block">Browse Lost Items →</span>
           </div>
-        </div>
-        <div className="bg-white dark:bg-dark-lighter p-6 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-800 flex items-center">
-          <div className="p-3 rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 mr-4">
+        </Link>
+
+        <Link 
+          to="/browse?type=found"
+          className="bg-white dark:bg-dark-lighter p-6 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-800 flex items-center hover:scale-[1.02] hover:shadow-2xl transition-all cursor-pointer group"
+        >
+          <div className="p-3 rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 mr-4 group-hover:scale-110 transition-transform">
             <Archive size={24} />
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Found Items</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{analytics?.foundItems || 0}</p>
+            <span className="text-xs text-purple-600 dark:text-purple-400 font-semibold mt-1 inline-block">Browse Found Items →</span>
           </div>
-        </div>
-        <div className="bg-white dark:bg-dark-lighter p-6 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-800 flex items-center">
-          <div className="p-3 rounded-xl bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 mr-4">
+        </Link>
+
+        <Link 
+          to="/browse?status=resolved"
+          className="bg-white dark:bg-dark-lighter p-6 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-800 flex items-center hover:scale-[1.02] hover:shadow-2xl transition-all cursor-pointer group"
+        >
+          <div className="p-3 rounded-xl bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 mr-4 group-hover:scale-110 transition-transform">
             <CheckCircle size={24} />
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Successful Returns</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{analytics?.successfulReturns || 0}</p>
+            <span className="text-xs text-green-600 dark:text-green-400 font-semibold mt-1 inline-block">View Resolved →</span>
           </div>
-        </div>
-        <div className="bg-white dark:bg-dark-lighter p-6 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-800 flex items-center">
-          <div className="p-3 rounded-xl bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 mr-4">
+        </Link>
+
+        <Link 
+          to="/browse?status=claimed"
+          className="bg-white dark:bg-dark-lighter p-6 rounded-2xl shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-800 flex items-center hover:scale-[1.02] hover:shadow-2xl transition-all cursor-pointer group"
+        >
+          <div className="p-3 rounded-xl bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 mr-4 group-hover:scale-110 transition-transform">
             <Activity size={24} />
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Active Claims</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{analytics?.activeClaims || 0}</p>
+            <span className="text-xs text-orange-600 dark:text-orange-400 font-semibold mt-1 inline-block">View Claims →</span>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* User's Recent Items */}

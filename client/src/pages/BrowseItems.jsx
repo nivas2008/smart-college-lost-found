@@ -19,21 +19,18 @@ const BrowseItems = () => {
 
   const categories = ['electronics', 'documents', 'keys', 'clothing', 'accessories', 'books', 'other'];
 
-  const fetchItems = async () => {
+  const fetchItems = async (activeFilters = filters) => {
     setLoading(true);
     try {
       // Build query string
       let query = new URLSearchParams();
-      if (filters.type) query.append('type', filters.type);
-      if (filters.category) query.append('category', filters.category);
-      if (filters.search) query.append('search', filters.search);
-      if (filters.status) query.append('status', filters.status);
+      if (activeFilters.type && activeFilters.type !== 'all') query.append('type', activeFilters.type);
+      if (activeFilters.category && activeFilters.category !== 'all') query.append('category', activeFilters.category);
+      if (activeFilters.search) query.append('search', activeFilters.search);
+      if (activeFilters.status && activeFilters.status !== 'all') query.append('status', activeFilters.status);
       
       const { data } = await axios.get(`/api/items?${query.toString()}`);
       setItems(data);
-      
-      // Update URL params
-      setSearchParams(query);
     } catch (error) {
       console.error("Error fetching items", error);
     } finally {
@@ -42,9 +39,15 @@ const BrowseItems = () => {
   };
 
   useEffect(() => {
-    fetchItems();
-    // eslint-disable-next-line
-  }, []);
+    const initialFilters = {
+      type: searchParams.get('type') || '',
+      category: searchParams.get('category') || '',
+      search: searchParams.get('search') || '',
+      status: searchParams.get('status') || ''
+    };
+    setFilters(initialFilters);
+    fetchItems(initialFilters);
+  }, [searchParams]);
 
   const handleFilterChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
@@ -52,7 +55,14 @@ const BrowseItems = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchItems();
+    fetchItems(filters);
+    
+    let query = new URLSearchParams();
+    if (filters.type) query.append('type', filters.type);
+    if (filters.category) query.append('category', filters.category);
+    if (filters.search) query.append('search', filters.search);
+    if (filters.status) query.append('status', filters.status);
+    setSearchParams(query);
   };
 
   return (
@@ -78,10 +88,18 @@ const BrowseItems = () => {
             />
           </div>
           
-          <select name="type" value={filters.type} onChange={handleFilterChange} className="md:w-48 px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-dark text-gray-900 dark:text-white focus:ring-primary focus:border-primary transition-colors">
+          <select name="type" value={filters.type} onChange={handleFilterChange} className="md:w-36 px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-dark text-gray-900 dark:text-white focus:ring-primary focus:border-primary transition-colors">
             <option value="">All Types</option>
             <option value="lost">Lost</option>
             <option value="found">Found</option>
+          </select>
+
+          <select name="status" value={filters.status} onChange={handleFilterChange} className="md:w-36 px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-dark text-gray-900 dark:text-white focus:ring-primary focus:border-primary transition-colors">
+            <option value="">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="claimed">Claimed</option>
+            <option value="returned">Returned</option>
+            <option value="resolved">Resolved</option>
           </select>
           
           <select name="category" value={filters.category} onChange={handleFilterChange} className="md:w-48 px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-dark text-gray-900 dark:text-white focus:ring-primary focus:border-primary transition-colors capitalize">
