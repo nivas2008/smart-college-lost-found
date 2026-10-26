@@ -86,9 +86,14 @@ const ProfilePage = () => {
 
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post('/api/auth/profile/send-otp', {}, config);
+      const res = await axios.post('/api/auth/profile/send-otp', {}, config);
       setModalOtpSent(true);
-      setModalSuccess('OTP sent to your email successfully!');
+      if (res.data?.simulatedOtp) {
+        setPassData(prev => ({ ...prev, otp: res.data.simulatedOtp }));
+        setModalSuccess(`Demo mode: Verification OTP is ${res.data.simulatedOtp}`);
+      } else {
+        setModalSuccess('OTP sent to your email successfully!');
+      }
     } catch (err) {
       setModalError(err.response?.data?.message || 'Failed to send OTP');
     } finally {

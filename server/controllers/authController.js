@@ -39,13 +39,22 @@ const sendOtp = async (req, res) => {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits
 
+    // Delete existing OTPs for this email first
+    await Otp.deleteMany({ email });
     await Otp.create({ email, otp });
 
-    await sendEmail({
+    const emailResult = await sendEmail({
       email,
       subject: 'Smart College Lost & Found - Verification OTP',
       message: `Your verification code is: ${otp}. It will expire in 10 minutes.`
     });
+
+    if (emailResult && !emailResult.delivered) {
+      return res.json({ 
+        message: 'OTP generated (Demo Mode: email delivery simulated)',
+        simulatedOtp: otp 
+      });
+    }
 
     res.json({ message: 'OTP sent successfully' });
   } catch (error) {
@@ -234,7 +243,14 @@ const sendProfileOtp = async (req, res) => {
     const subject = 'Smart College Lost & Found - Profile Update OTP';
     const message = `Your verification code to update your profile is: ${otpCode}. It will expire in 10 minutes.`;
     
-    await sendEmail({ email, subject, message });
+    const emailResult = await sendEmail({ email, subject, message });
+
+    if (emailResult && !emailResult.delivered) {
+      return res.json({ 
+        message: 'OTP generated (Demo Mode: email delivery simulated)',
+        simulatedOtp: otpCode 
+      });
+    }
 
     res.json({ message: 'OTP sent successfully' });
   } catch (error) {
@@ -324,7 +340,14 @@ const forgotPassword = async (req, res) => {
     const subject = 'Smart College Lost & Found - Password Reset OTP';
     const message = `Your password reset code is: ${otpCode}. It will expire in 10 minutes.`;
     
-    await sendEmail({ email, subject, message });
+    const emailResult = await sendEmail({ email, subject, message });
+
+    if (emailResult && !emailResult.delivered) {
+      return res.json({ 
+        message: 'OTP generated (Demo Mode: email delivery simulated)',
+        simulatedOtp: otpCode 
+      });
+    }
 
     res.json({ message: 'OTP sent successfully' });
   } catch (error) {

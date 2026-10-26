@@ -65,8 +65,13 @@ const LoginPage = () => {
     
     setIsLoading(true);
     try {
-      await axios.post('/api/auth/forgot-password', { email });
-      toast.success('OTP sent to your email');
+      const res = await axios.post('/api/auth/forgot-password', { email });
+      if (res.data?.simulatedOtp) {
+        setResetOtp(res.data.simulatedOtp);
+        toast.info(`Demo Mode: Reset OTP is ${res.data.simulatedOtp}`, { autoClose: 10000 });
+      } else {
+        toast.success('OTP sent to your email');
+      }
       setView('otp');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to send OTP');

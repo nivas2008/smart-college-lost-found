@@ -40,9 +40,14 @@ const RegisterPage = () => {
     }
     setIsOtpSending(true);
     try {
-      await axios.post('/api/auth/send-otp', { email: formData.email });
+      const res = await axios.post('/api/auth/send-otp', { email: formData.email });
       setIsOtpSent(true);
-      toast.success("OTP sent! Check your server logs (or email)");
+      if (res.data?.simulatedOtp) {
+        setFormData(prev => ({ ...prev, otp: res.data.simulatedOtp }));
+        toast.info(`Demo Mode: Verification OTP is ${res.data.simulatedOtp}`, { autoClose: 10000 });
+      } else {
+        toast.success("OTP sent! Please check your email inbox");
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to send OTP");
     } finally {
