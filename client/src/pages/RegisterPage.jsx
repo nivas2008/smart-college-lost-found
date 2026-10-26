@@ -139,7 +139,7 @@ const RegisterPage = () => {
             {isOtpSent && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Verification OTP</label>
-                <input type="text" name="otp" required onChange={handleChange} placeholder="Enter 6-digit code" className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-dark text-gray-900 dark:text-white focus:ring-primary focus:border-primary sm:text-sm transition-colors" />
+                <input type="text" name="otp" value={formData.otp || ''} required onChange={handleChange} placeholder="Enter 6-digit code" className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-dark text-gray-900 dark:text-white focus:ring-primary focus:border-primary sm:text-sm transition-colors font-mono tracking-wider" />
               </motion.div>
             )}
 
