@@ -89,7 +89,6 @@ const ProfilePage = () => {
       const res = await axios.post('/api/auth/profile/send-otp', {}, config);
       setModalOtpSent(true);
       if (res.data?.simulatedOtp) {
-        setPassData(prev => ({ ...prev, otp: res.data.simulatedOtp }));
         setModalSuccess(`Demo mode: Verification OTP is ${res.data.simulatedOtp}`);
       } else {
         setModalSuccess('OTP sent to your email successfully!');
@@ -397,6 +396,7 @@ const ProfilePage = () => {
                           value={passData.otp}
                           onChange={handlePassChange}
                           placeholder="6-digit code"
+                          autoComplete="off"
                           className="pl-10 w-full rounded-none border-gray-300 dark:border-gray-600 bg-white dark:bg-dark text-gray-900 dark:text-white focus:border-primary focus:ring focus:ring-primary/20 transition-all border-r-0"
                         />
                       </div>

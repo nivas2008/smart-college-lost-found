@@ -67,7 +67,6 @@ const LoginPage = () => {
     try {
       const res = await axios.post('/api/auth/forgot-password', { email });
       if (res.data?.simulatedOtp) {
-        setResetOtp(res.data.simulatedOtp);
         toast.info(`Demo Mode: Reset OTP is ${res.data.simulatedOtp}`, { autoClose: 10000 });
       } else {
         toast.success('OTP sent to your email');
@@ -267,6 +266,7 @@ const LoginPage = () => {
                     required
                     value={resetOtp}
                     onChange={(e) => setResetOtp(e.target.value)}
+                    autoComplete="off"
                     className="pl-10 tracking-widest text-center appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm bg-white dark:bg-dark text-gray-900 dark:text-white transition-colors"
                     placeholder="------"
                     maxLength={6}

@@ -43,7 +43,6 @@ const RegisterPage = () => {
       const res = await axios.post('/api/auth/send-otp', { email: formData.email });
       setIsOtpSent(true);
       if (res.data?.simulatedOtp) {
-        setFormData(prev => ({ ...prev, otp: res.data.simulatedOtp }));
         toast.info(`Demo Mode: Verification OTP is ${res.data.simulatedOtp}`, { autoClose: 10000 });
       } else {
         toast.success("OTP sent! Please check your email inbox");
@@ -139,7 +138,7 @@ const RegisterPage = () => {
             {isOtpSent && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Verification OTP</label>
-                <input type="text" name="otp" value={formData.otp || ''} required onChange={handleChange} placeholder="Enter 6-digit code" className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-dark text-gray-900 dark:text-white focus:ring-primary focus:border-primary sm:text-sm transition-colors font-mono tracking-wider" />
+                <input type="text" name="otp" value={formData.otp || ''} required onChange={handleChange} placeholder="Enter 6-digit code" autoComplete="off" className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-dark text-gray-900 dark:text-white focus:ring-primary focus:border-primary sm:text-sm transition-colors font-mono tracking-wider" />
               </motion.div>
             )}
 
