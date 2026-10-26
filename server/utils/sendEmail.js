@@ -1,11 +1,46 @@
 const sendEmail = async (options) => {
-  // 1. DIRECT HTTPS REST API VIA RESEND (Port 443 - never blocked by cloud firewalls)
+  // 1. DIRECT HTTPS REST API VIA BREVO (Priority 1: Sends to ANY email address without requiring a custom domain)
+  if (process.env.BREVO_API_KEY) {
+    try {
+      const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.BREVO_SENDER_ || process.env.BREVO_SENDER || 'lakshminivasdevangam@gmail.com';
+      console.log(`[Email] Attempting delivery to ${options.email} via Brevo API from sender: ${senderEmail}`);
+
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': process.env.BREVO_API_KEY.trim(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sender: {
+            name: 'Smart College Lost & Found',
+            email: senderEmail.trim()
+          },
+          to: [{ email: options.email }],
+          subject: options.subject,
+          textContent: options.message,
+        })
+      });
+
+      if (response.ok) {
+        console.log(`[Email] Successfully delivered email to ${options.email} via Brevo.`);
+        return { success: true, delivered: true, provider: 'brevo' };
+      } else {
+        const errText = await response.text();
+        console.warn(`[Email] Brevo API error (Status ${response.status}): ${errText}`);
+      }
+    } catch (err) {
+      console.warn(`[Email] Brevo delivery failed:`, err.message);
+    }
+  }
+
+  // 2. DIRECT HTTPS REST API VIA RESEND (Port 443 - never blocked by cloud firewalls)
   if (process.env.RESEND_API_KEY) {
     try {
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY.trim()}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -22,44 +57,9 @@ const sendEmail = async (options) => {
       } else {
         const errData = await response.json().catch(() => ({}));
         console.warn(`[Email] Resend API status ${response.status}:`, errData.message || '');
-        if (response.status === 403 && (errData.message || '').includes('testing emails')) {
-          console.warn(`[Email Note] Resend sandbox mode only delivers to account owner (lakshminivasdevangam@gmail.com). To test real emails with Resend, use that address or verify a domain. Falling back to simulation for ${options.email}.`);
-        }
       }
     } catch (err) {
       console.warn(`[Email] Resend delivery failed:`, err.message);
-    }
-  }
-
-  // 2. DIRECT HTTPS REST API VIA BREVO (Sends to ANY email address without requiring a custom domain)
-  if (process.env.BREVO_API_KEY) {
-    try {
-      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST',
-        headers: {
-          'api-key': process.env.BREVO_API_KEY,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          sender: {
-            name: 'Smart College Lost & Found',
-            email: process.env.BREVO_SENDER_EMAIL || 'lakshminivasdevangam@gmail.com'
-          },
-          to: [{ email: options.email }],
-          subject: options.subject,
-          textContent: options.message,
-        })
-      });
-
-      if (response.ok) {
-        console.log(`[Email] Successfully delivered email to ${options.email} via Brevo.`);
-        return { success: true, delivered: true, provider: 'brevo' };
-      } else {
-        const errText = await response.text();
-        console.warn(`[Email] Brevo API error: ${response.status} - ${errText}`);
-      }
-    } catch (err) {
-      console.warn(`[Email] Brevo delivery failed:`, err.message);
     }
   }
 
