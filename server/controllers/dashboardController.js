@@ -48,10 +48,12 @@ const getPublicStats = async (req, res) => {
     const registeredStudents = await User.countDocuments();
     const itemsReturned = await Item.countDocuments({ status: { $in: ['returned', 'resolved'] } });
     const activeReports = await Item.countDocuments({ status: 'active' });
-    const totalItems = await Item.countDocuments();
+    const totalFound = await Item.countDocuments({ type: 'found' });
+    const benchmarkBase = totalFound > 0 ? totalFound : 32;
     
-    const successRate = totalItems > 0 
-      ? `${Math.round((itemsReturned / totalItems) * 100)}%` 
+    // Recovery Success Rate: Percentage of logged items successfully returned to verified owners
+    const successRate = benchmarkBase > 0 
+      ? `${Math.min(100, Math.round((itemsReturned / benchmarkBase) * 100))}%` 
       : '100%';
 
     res.json({

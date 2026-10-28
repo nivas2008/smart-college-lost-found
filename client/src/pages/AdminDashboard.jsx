@@ -117,7 +117,9 @@ const AdminDashboard = () => {
   // Filtered Items
   const filteredItems = items.filter(item => {
     const matchesType = itemTypeFilter === 'all' || item.type === itemTypeFilter;
-    const matchesStatus = itemStatusFilter === 'all' || item.status === itemStatusFilter;
+    const matchesStatus = itemStatusFilter === 'all' || 
+      item.status === itemStatusFilter || 
+      (itemStatusFilter === 'resolved' && item.status === 'returned');
     const matchesSearch = !searchQuery || 
       item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
